@@ -485,9 +485,9 @@ ISR(PCINT0_vect) {
 #define PORTCVECT PCINT2_vect
 #define PORTDVECT PCINT3_vect
 #else
-#define PORTBVECT PCINT0_vect
-#define PORTCVECT PCINT1_vect
-#define PORTDVECT PCINT2_vect
+#define PORTBVECT PCINT0_vect_em
+#define PORTCVECT PCINT1_vect_em
+#define PORTDVECT PCINT2_vect_em
 #endif
 
 #ifndef NO_PORTB_PINCHANGES

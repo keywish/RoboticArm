@@ -490,24 +490,28 @@ unsigned char IRremote::getCode()
   loop();
   return irRead;
 }
-String IRremote::getKeyMap(byte keycode )
+String IRremote::getKeyMap(byte keycode, byte ir_type)
 {
    byte i;
+   ST_KEY_MAP *irkeymap = normal_ir_keymap;
+   if (ir_type == IR_TYPE_EM) irkeymap = em_ir_keymap;
    for (i = 0; i < KEY_MAX; i++) {
         if (irkeymap[i].keycode == keycode)
-         return irkeymap[i].keyname;
-    }
-    return "";
+        return irkeymap[i].keyname;
+   }
+   return "";
 }
 
-byte IRremote::getIrKey(byte keycode)
+byte IRremote::getIrKey(byte keycode, byte ir_type)
 {
-   byte i;
-   for (i = 0; i < KEY_MAX; i++) {
+    byte i;
+    ST_KEY_MAP *irkeymap = normal_ir_keymap;
+    if (ir_type == IR_TYPE_EM) irkeymap = em_ir_keymap;
+    for (i = 0; i < KEY_MAX; i++) {
         if (irkeymap[i].keycode == keycode)
-         return i;
+        return i;
     }
-    return 0xFF;
+   return 0xFF;
 }
 /**
  * \par Function

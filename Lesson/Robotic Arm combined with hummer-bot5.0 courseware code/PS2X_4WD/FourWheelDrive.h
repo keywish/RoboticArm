@@ -1,5 +1,5 @@
-#ifndef _PANTHER_TANK_H_
-#define _PANTHER_TANK_H_
+#ifndef _FourWheelDrive_H_
+#define _FourWheelDrive_H_
 #include <stdint.h>
 #include "SPI.h"
 #include "Arduino.h"
@@ -12,6 +12,8 @@
 #define RIGHT 2
 #define MIDDLE 3
 
+#define MECANUMCAR 0
+
 typedef enum
 {
   E_EFFECT_BREATHING = 0,
@@ -19,7 +21,7 @@ typedef enum
   E_EFFECT_FLASH = 2
 } E_RGB_EFFECT;
 
-class Tank: public SmartCar {
+class FourWheelDrive: public SmartCar {
 
   private :
     byte ServoPin;
@@ -38,12 +40,11 @@ class Tank: public SmartCar {
     Emakefun_Sensor *Sensors;
     PS2X *Ps2x;
     Nrf24l *Nrf24L01;
-    Emakefun_Servo *mServo1, *mServo2, *mServo3, *mServo4, *mServo5, *mServo6, *mServo7, *mServo8;
-    Tank(ProtocolParser *Package);
-    ~Tank(void);
+    Emakefun_Servo *mServo1, *mServo2, *mServo3, *mServo4, *mServo5, *mServo6;
+    FourWheelDrive(ProtocolParser *Package);
+    ~FourWheelDrive(void);
     void Move(int directions);
     void init(int leftward, int rightfoward, int leftbackward, int rightbackward);
-    void init(int leftward, int rightfoward);
     void GoForward(void);
     void GoBack(void);
     void TurnLeft(void);
@@ -54,12 +55,12 @@ class Tank: public SmartCar {
     void Drive(void);
     void Drive(int degree);
     void InitIr(void);
+    int GetIrKey(void);
     void InitBuzzer(void);
     void sing(byte songName);
     void PianoSing(ST_MUSIC_TYPE music);
     void InitRgb(void);
     void SetRgbColor(E_RGB_INDEX index , long Color);
-    void SetRgbEffect(E_RGB_INDEX index, long Color, uint8_t effect);
     void LightOff(void);
     void InitUltrasonic(void);
     byte GetUltrasonicValue(byte);

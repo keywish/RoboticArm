@@ -169,13 +169,13 @@ void Buzzer::bendTones(float initFrequency, float finalFrequency, float prop, lo
   if(initFrequency < finalFrequency)
   {
       for (int i=initFrequency; i<finalFrequency; i=i*prop) {
-          tone(i, noteDuration, silentDuration);
+          _tone(i, noteDuration, silentDuration);
       }
 
   } else{
 
       for (int i=initFrequency; i>finalFrequency; i=i/prop) {
-          tone(i, noteDuration, silentDuration);
+          _tone(i, noteDuration, silentDuration);
       }
   }
 }

@@ -46,7 +46,7 @@ FourWheelDrive::~FourWheelDrive()
 
 void FourWheelDrive::init(int leftward, int rightfoward, int leftbackward, int rightbackward)
 {
-    MotorDriver = Emakefun_MotorDriver(0x60);
+    MotorDriver = Emakefun_MotorDriver(0x60,MOTOR_DRIVER_BOARD_V5);
     Sensors = (Emakefun_Sensor *)MotorDriver.getSensor(E_SENSOR_MAX);
     LeftFoward = MotorDriver.getMotor(leftward);
     RightFoward = MotorDriver.getMotor(rightfoward);
@@ -110,8 +110,8 @@ void FourWheelDrive::KeepStop(void)
     DriveSpeed(0);
     LeftFoward->run(BRAKE);
     RightFoward->run(BRAKE);
-    LeftFoward->run(BRAKE);
-    RightFoward->run(BRAKE);
+    LeftBackward->run(BRAKE);
+    RightBackward->run(BRAKE);
 }
 
 void FourWheelDrive::TurnLeft(void)
@@ -272,7 +272,7 @@ int FourWheelDrive::GetIrKey(void)
 {
   byte irKeyCode;
   if (irKeyCode = IR->getCode()) {
-    return ((E_IR_KEYCODE)IR->getIrKey(irKeyCode));
+    return ((E_NORMAL_IR_KEYCODE)IR->getIrKey(irKeyCode,IR_TYPE_NORMAL));
   } return (0);
 }
 

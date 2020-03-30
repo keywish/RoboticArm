@@ -244,17 +244,15 @@ byte PS2X::config_gamepad(uint8_t clk, uint8_t cmd, uint8_t att, uint8_t dat, bo
   pinMode(clk, OUTPUT); //configure ports
   pinMode(att, OUTPUT);
   pinMode(cmd, OUTPUT);
-  pinMode(dat, INPUT);
-
-#if defined(__AVR__)
-  digitalWrite(dat, HIGH); //enable pull-up
-#endif
+  pinMode(dat, INPUT_PULLUP);
 
   CMD_SET(); // SET(*_cmd_oreg,_cmd_mask);
+  delay(5);
   CLK_SET();
-
+  delay(5);
   //new error checking. First, read gamepad a few times to see if it's talking
   read_gamepad();
+   delay(50);
   read_gamepad();
 
   //see if it talked - see if mode came back.

@@ -47,7 +47,6 @@ void HandleNrf24L01Remote()
     if ( fun == E_ROBOT_CONTROL_DIRECTION) {
       DEBUG_LOG(DEBUG_LEVEL_INFO, "E_ROBOT_CONTROL_DIRECTION \n");
       int degree = mProtocol->GetRobotDegree();
-      Serial.println(degree);
       if ((90 < degree) && (degree <= 270))
       {
         if (DownServo < 180) {
@@ -64,12 +63,8 @@ void HandleNrf24L01Remote()
       DEBUG_LOG(DEBUG_LEVEL_INFO, "E_ROBOT_CONTROL_SPEED \n");
       mARM.SetSpeed(mProtocol->GetRobotSpeed());
     }
-    if (fun == E_BUTTON)
-    {
-      Serial.println("Button: ");
-      Serial.println(mProtocol->GetBluetoothButton());
-      switch (mProtocol->GetBluetoothButton())
-      {
+    if (fun == E_BUTTON) {
+      switch (mProtocol->GetBluetoothButton()) {
         case BT_L1:
           Serial.println("BT_L:");
           if (UpServo < 165)

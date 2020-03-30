@@ -10,8 +10,19 @@
 #define RGB_BLUE    0x0000FF
 #define RGB_YELLOW  0xFFFF00
 #define RGB_PURPLE  0xFF00FF
+#define RGB_ORANGE  0xFFA500
+#define RGB_INDIGO  0x4b0082
+#define RGB_VIOLET  0x8a2be2
 #define RGB_WHITE   0xFFFFFF
-#define RGB_BLACK   0X000000
+#define RGB_BLACK   0
+
+typedef enum
+{
+    E_RGB_ALL = 0,
+    E_RGB_RIGHT = 1,
+    E_RGB_LEFT = 2
+} E_RGB_INDEX;
+
 /// @brief Class for RGB Led Module
 struct cRGB
 {
@@ -235,11 +246,14 @@ bool setColorAt(uint8_t index, uint8_t red, uint8_t green, uint8_t blue);
  *   None
  */
   void show(void);
+ void setBrightness(uint8_t b);
+  void SetRgbColor(E_RGB_INDEX index, long Color);
 
 private:
   uint16_t count_led;
   uint8_t *pixels;
   uint8_t *pixels_bak;
+  uint8_t brightness;
 
 /**
  * \par Function

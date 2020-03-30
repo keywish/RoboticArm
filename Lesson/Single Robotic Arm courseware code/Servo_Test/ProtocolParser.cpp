@@ -1,6 +1,6 @@
 #include "Protocol.h"
 #include "ProtocolParser.h"
-#define DEBUG_LEVEL DEBUG_LEVEL_ERR
+//#define DEBUG_LEVEL DEBUG_LEVEL_ALL
 #include "debug.h"
 
 #if ARDUINO > 10609
@@ -28,23 +28,19 @@ ProtocolParser::~ProtocolParser(void)
     m_pHeader = NULL;
 }
 
-#if ARDUINO > 10609
 bool ProtocolParser::ParserPackage(byte *data = NULL)
-#else
-bool ProtocolParser::ParserPackage(byte *data )
-#endif
 {
+    unsigned int check_sum = 0;
     if (m_recv_flag) {
         m_recv_flag = false;
         if( data != NULL) {
-            m_pHeader = (byte*)data;
+            m_pHeader = data;
         } else {
             m_pHeader = buffer;
         }
-        unsigned short int check_sum = 0;
         recv->start_code = buffer[0];
         recv->len = buffer[1];
-        for (int i = 1; i < m_PackageLength - 3; i++) {
+        for (byte i = 1; i < m_PackageLength - 3; i++) {
             check_sum += buffer[i];
         }
         if ((check_sum & 0xFFFF) != GetCheckSum()) {
@@ -57,7 +53,7 @@ bool ProtocolParser::ParserPackage(byte *data )
         recv->function = buffer[4];
         recv->data = &buffer[5];
         protocol_data_len = m_PackageLength - 8;
-        recv->end_code = buffer[m_RecvDataIndex];
+        recv->end_code = buffer[m_PackageLength-1];
         DEBUG_LOG(DEBUG_LEVEL_INFO, "\nRecevPackage end \n");
         return true;
 	}
@@ -161,10 +157,12 @@ bool ProtocolParser::RecevData(byte *data, size_t len)
             if ((*m_pHeader = *data) == m_EndCode) {
                 m_recv_flag = true;
                 m_PackageLength++;
-                DEBUG_LOG(DEBUG_LEVEL_INFO, "%x", *m_pHeader);
+                DEBUG_LOG(DEBUG_LEVEL_INFO, "%x ", *m_pHeader);
+                //Serial.println("m_PackageLength ");
+                //Serial.print(m_PackageLength);
                 break;
             }
-            DEBUG_LOG(DEBUG_LEVEL_INFO, "%x", *m_pHeader);
+            DEBUG_LOG(DEBUG_LEVEL_INFO, "%x ", *m_pHeader);
             m_pHeader++;
             m_PackageLength++;
         }
@@ -173,6 +171,7 @@ bool ProtocolParser::RecevData(byte *data, size_t len)
     DEBUG_LOG(DEBUG_LEVEL_INFO, "\nRecevPackage done\n");
     return true;
 }
+
 
 E_TYPE ProtocolParser::GetRobotType(void)
 {

@@ -6,7 +6,6 @@
  #define WIRE Wire
 #endif
 
-
 Emakefun_MS_PWMServoDriver::Emakefun_MS_PWMServoDriver(uint8_t addr) {
   _i2caddr = addr;
 }

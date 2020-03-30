@@ -7,7 +7,7 @@
 #include"SmartCar.h"
 #include<stdint.h>
 
-#define BUFFER_SIZE 64
+#define BUFFER_SIZE 32
 
 class ProtocolParser
 {

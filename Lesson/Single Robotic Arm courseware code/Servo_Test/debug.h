@@ -11,7 +11,7 @@ void arduino_printf(char *fmt ,...);
 #define  DEBUG_LEVEL_WRN  0x0002
 #define  DEBUG_LEVEL_ERR  0x0003
 #define  DEBUG_LEVEL_RED  0x0004
-#define  DEBUG_LEVEL_ALL  0x00FF
+#define  DEBUG_LEVEL_ALL  0x0000
 
 #define DEBUG_LOG(level, fmt, ...) \
     do{\

@@ -3,7 +3,7 @@
 
 #include <inttypes.h>
 #include <Wire.h>
-#include "SPI.h"
+#include <SPI.h>
 #include "Emakefun_MS_PWMServoDriver.h"
 #include "IRremote.h"
 #include "PS2X_lib.h"  //for v1.6
@@ -12,6 +12,10 @@
 #include "Sounds.h"
 #include "nRF24L01.h"
 //#define MOTORDEBUG
+
+#define MOTOR_DRIVER_BOARD_V3 3
+#define MOTOR_DRIVER_BOARD_V4 4
+#define MOTOR_DRIVER_BOARD_V5 5
 
 #define MICROSTEPS 16         // 8 or 16
 
@@ -43,7 +47,12 @@
 #define ECHO_PIN A3
 #define TRIG_PIN A2
 #define IR_PIN 8
+
+#if (MOTOR_DRIVER_BOARD_VER == 3)
+#define BUZZER_PIN 9
+#else
 #define BUZZER_PIN A0
+#endif
 
 #define PS2_DAT   12
 #define PS2_CMD   11
@@ -53,7 +62,7 @@
 #define NRF24L01_CE 10
 #define NRF24L01_CSN 9
 
-#define NRF_NAME "emakefun"
+#define NRF_NAME "m"
 #define NRF_DATA_LEN 12
 
 #define UL_LIMIT_MIN 16
@@ -112,8 +121,10 @@ class Emakefun_DCMotor
   
  private:
   uint8_t PWMpin, IN1pin, IN2pin;
+  int DcSpeed;
   Emakefun_MotorDriver *MC;
   uint8_t motornum;
+
 };
 
 class Emakefun_EncoderMotor {
@@ -128,8 +139,10 @@ class Emakefun_EncoderMotor {
   void EncoderCallback2(void);
   static FuncPtr CallBack[2];
  private:
-  uint8_t IN1pin, IN2pin, PWMpin , ENCODER1pin, ENCODER2pin;
+  uint8_t PWMpin, IN1pin, IN2pin;
+  uint8_t ENCODER1pin, ENCODER2pin;
   uint8_t pluse;
+  int DcSpeed;
   Emakefun_MotorDriver *MC;
   uint8_t encodernum;
 };
@@ -138,7 +151,7 @@ class Emakefun_StepperMotor {
  public:
   Emakefun_StepperMotor(void);
   friend class Emakefun_MotorDriver;
-  void step(uint16_t steps, uint8_t dir,  uint8_t style = DOUBLE);
+  void step(uint16_t steps, uint8_t dir,  uint8_t style = SINGLE);
   void setSpeed(uint16_t);
   uint8_t onestep(uint8_t dir, uint8_t style);
   void release(void);
@@ -170,8 +183,8 @@ private:
 class Emakefun_MotorDriver
 {
  public:
-    Emakefun_MotorDriver(uint8_t addr = 0x60);
-    friend class Emakefun_DCMotor;
+    Emakefun_MotorDriver(uint8_t addr = 0x60, uint8_t version = 4);
+    uint8_t _version;
     void begin(uint16_t freq = 1600);
     void setPWM(uint8_t pin, uint16_t val);
     void setPin(uint8_t pin, boolean val);
@@ -182,13 +195,18 @@ class Emakefun_MotorDriver
     //Emakefun_Sensor *getSensor();
     void *getSensor(E_SENSOR_INDEX n);
  private:
+
     uint8_t _addr;
     uint16_t _freq;
     Emakefun_DCMotor dcmotors[4];
     Emakefun_EncoderMotor encoder[2];
     Emakefun_StepperMotor steppers[2];
     Emakefun_MS_PWMServoDriver _pwm;
+#if (MOTOR_DRIVER_BOARD_VER == 3)
+    Emakefun_Servo servos[4];
+#else
     Emakefun_Servo servos[8];
+#endif
     Emakefun_Sensor sensors;
 };
 

@@ -4,42 +4,70 @@
 #include "KeyMap.h"
 #include "debug.h"
 
-//MotorShieldBoard V3.0
-Tank::Tank(ProtocolParser *Package): SmartCar("PantherTank", 0x01, E_BLUETOOTH_CONTROL)
+//MotorDriverBoard V4.0
+Tank::Tank(ProtocolParser *Package): SmartCar("Tank", E_PANTHER_TANK, 0x01, E_BLUETOOTH_CONTROL)
 {
-  mMotorDriver = new Emakefun_MotorDriver();
+  LeftFoward = RightFoward = LeftBackward = RightBackward = NULL;
+  IR = NULL;
+  Buzzer  = NULL;
+  Rgb = NULL;
+  //UT = NULL;
+  Ps2x = NULL;
+  Nrf24L01 = NULL;
+  mServo1 = NULL;
+  mServo2 = NULL;
+  mServo3 = NULL;
+  mServo4 = NULL;
+  mServo5 = NULL;
+  mServo6 = NULL;
   SetStatus(E_STOP);
   mProtocolPackage = Package;
 }
 
 Tank::~Tank()
 {
-  delete mMotorDriver;
-  delete DCMotor_1;
-  delete DCMotor_2;
+  delete LeftFoward;
+  delete RightFoward;
+  delete LeftBackward;
+  delete RightBackward;
   delete IR;
   delete Buzzer;
   delete Rgb;
-  delete UT;
-  delete  Ps2x;
-  delete Nrf;
+  delete Ps2x;
+  delete Nrf24L01;
   delete mServo1;
   delete mServo2;
   delete mServo3;
   delete mServo4;
   delete mServo5;
   delete mServo6;
+  delete mServo7;
+  delete mServo8;
 }
 
-void Tank::init(void)
+void Tank::init(int leftward, int rightfoward, int leftbackward, int rightbackward)
 {
-  DCMotor_1 = mMotorDriver->getMotor(1);
-  DCMotor_2 = mMotorDriver->getMotor(2);
-  DCMotor_3 = mMotorDriver->getMotor(3);
-  DCMotor_4 = mMotorDriver->getMotor(4);
-  delay(100);
-  mMotorDriver->begin(50);
+    MotorDriver = Emakefun_MotorDriver(0x60,MOTOR_DRIVER_BOARD_V5);
+    Sensors = (Emakefun_Sensor *)MotorDriver.getSensor(E_SENSOR_MAX);
+    LeftFoward = MotorDriver.getMotor(leftward);
+    RightFoward = MotorDriver.getMotor(rightfoward);
+    LeftBackward = MotorDriver.getMotor(leftbackward);
+    RightBackward = MotorDriver.getMotor(rightbackward);
+    delay(200);
+    MotorDriver.begin(50);
 }
+
+void Tank::init(int leftward, int rightfoward)
+{
+    MotorDriver = Emakefun_MotorDriver(0x60,MOTOR_DRIVER_BOARD_V5);
+    Sensors = (Emakefun_Sensor *)MotorDriver.getSensor(E_SENSOR_MAX);
+    LeftFoward = MotorDriver.getMotor(leftward);
+    RightFoward = MotorDriver.getMotor(rightfoward);
+    delay(200);
+    MotorDriver.begin(50);
+}
+
+
 #if ARDUINO > 10609
 void Tank::Move(int directions = 1)
 #else
@@ -47,109 +75,105 @@ void Tank::Move(int directions)
 #endif
 {
   if (directions == 1) {
-    Serial.println(1);
     GoForward();
   } else if (directions == 2) {
-    Serial.println(2);
     GoBack();
   } else if (directions == 3) {
-    Serial.println(3);
     TurnLeft();
   } else if (directions == 4) {
-    Serial.println(4);
     TurnRight();
   } else {
     KeepStop();
   }
 }
 
-void Tank::SetSpeed(int s)
+void Tank::DriveSpeed(int s)
 {
-  if (s > 100) {
-    Speed = 100;
-    return;
-  } else if (s < 0) {
-    Speed = 0;
-    return;
-  }
-  Speed = s;
-  DCMotor_1->setSpeed((Speed / 10) * 25.5);
-  DCMotor_2->setSpeed((Speed / 10) * 25.5);
-  DCMotor_3->setSpeed((Speed / 10) * 25.5);
-  DCMotor_4->setSpeed((Speed / 10) * 25.5);
-  if (GetStatus() == E_STOP) 
-    KeepStop();
+    if (s >= 0 && s <= 100) {
+        LeftFoward->setSpeed((s / 10) * 25.5);
+        RightFoward->setSpeed((s / 10) * 25.5);
+        LeftBackward->setSpeed((s / 10) * 25.5);
+        RightBackward->setSpeed((s / 10) * 25.5);
+    }
 }
 
 void Tank::GoForward(void)
 {
-  SetStatus(E_FORWARD);
-  SetSpeed(Speed);
-  DCMotor_1->run(FORWARD);
-  DCMotor_2->run(FORWARD);
-  DCMotor_3->run(FORWARD);
-  DCMotor_4->run(FORWARD);
+    SetStatus(E_FORWARD);
+    DriveSpeed(Speed);
+    LeftFoward->run(FORWARD);
+    RightFoward->run(FORWARD);
+    LeftBackward->run(FORWARD);
+    RightBackward->run(FORWARD);
 }
 
 void Tank::GoBack(void)
 {
-  SetStatus(E_BACK);
-  SetSpeed(Speed);
-  DCMotor_1->run(BACKWARD);
-  DCMotor_2->run(BACKWARD);
-  DCMotor_3->run(BACKWARD);
-  DCMotor_4->run(BACKWARD);
+    SetStatus(E_BACK);
+    DriveSpeed(Speed);
+    LeftFoward->run(BACKWARD);
+    RightFoward->run(BACKWARD);
+    LeftBackward->run(BACKWARD);
+    RightBackward->run(BACKWARD);
 }
 void Tank::KeepStop(void)
 {
-  SetStatus(E_STOP);
-  DCMotor_1->setSpeed(0);
-  DCMotor_2->setSpeed(0);
-  DCMotor_3->setSpeed(0);
-  DCMotor_4->setSpeed(0);
-  DCMotor_1->run(BRAKE);
-  DCMotor_2->run(BRAKE);
-  DCMotor_1->run(BRAKE);
-  DCMotor_2->run(BRAKE);
+    SetStatus(E_STOP);
+    DriveSpeed(0);
+    LeftFoward->run(BRAKE);
+    RightFoward->run(BRAKE);
+    LeftBackward->run(BRAKE);
+    RightBackward->run(BRAKE);
 }
 
 void Tank::TurnLeft(void)
 {
-  SetStatus(E_LEFT);
-  SetSpeed(Speed);
-  DCMotor_1->run(BACKWARD);
-  DCMotor_2->run(FORWARD);
-  DCMotor_3->run(BACKWARD);
-  DCMotor_4->run(FORWARD);
+    int s;
+    s = (Speed / 10) * 25.5;
+    SetStatus(E_LEFT);
+      LeftFoward->setSpeed(s/2);
+      LeftBackward->setSpeed(s/2);
+      RightFoward->setSpeed(s);
+      RightBackward->setSpeed(s);
+      LeftFoward->run(FORWARD);
+      RightFoward->run(FORWARD);
+      LeftBackward->run(FORWARD);
+      RightBackward->run(FORWARD);
 }
 
 void Tank::TurnRight(void)
 {
-  SetStatus(E_RIGHT);
-  SetSpeed(Speed);
-  DCMotor_1->run(FORWARD);
-  DCMotor_2->run(BACKWARD);
-  DCMotor_3->run(FORWARD);
-  DCMotor_4->run(BACKWARD);
-}
-void Tank::LeftLateral(void)
-{
-  SetStatus(E_LEFT_LATERALA);
-  SetSpeed(Speed);
-  DCMotor_1->run(BACKWARD);
-  DCMotor_2->run(FORWARD);
-  DCMotor_3->run(FORWARD);
-  DCMotor_4->run(BACKWARD);
+    int s;
+    SetStatus(E_RIGHT);
+    s = (Speed / 10) * 25.5;
+      LeftFoward->setSpeed(s);
+      LeftBackward->setSpeed(s);
+      RightFoward->setSpeed(s/2);
+      RightBackward->setSpeed(s/2);
+      LeftFoward->run(FORWARD);
+      RightFoward->run(FORWARD);
+      LeftBackward->run(FORWARD);
+      RightBackward->run(FORWARD);
 }
 
-void Tank::RightLateral(void)
+void Tank::TurnLeftRotate(void)
 {
-  SetStatus(E_RIGHT_LATERALA);
-  SetSpeed(Speed);
-  DCMotor_1->run(FORWARD);
-  DCMotor_2->run(BACKWARD);
-  DCMotor_3->run(BACKWARD);
-  DCMotor_4->run(FORWARD);
+    SetStatus(E_LEFT_ROTATE);
+    DriveSpeed(Speed);
+    LeftFoward->run(BACKWARD);
+    LeftBackward->run(BACKWARD);
+    RightFoward->run(FORWARD);
+    RightBackward->run(FORWARD);
+}
+
+void Tank::TurnRightRotate(void)
+{
+    SetStatus(E_RIGHT_ROTATE);
+    DriveSpeed(Speed);
+    LeftFoward->run(FORWARD);
+    LeftBackward->run(FORWARD);
+    RightFoward->run(BACKWARD);
+    RightBackward->run(BACKWARD);
 }
 
 void Tank::Drive(void)
@@ -169,14 +193,14 @@ void Tank::Drive(int degree)
     } else  if (degree >= 85) {
       SetStatus(E_FORWARD);
     }
-    DCMotor_1->setSpeed(value);
-    DCMotor_2->setSpeed((float)(value * f));
-    DCMotor_3->setSpeed(value);
-    DCMotor_4->setSpeed((float)(value * f));
-    DCMotor_1->run(FORWARD);
-    DCMotor_2->run(FORWARD);
-    DCMotor_3->run(FORWARD);
-    DCMotor_4->run(FORWARD);
+    LeftFoward->setSpeed(value);
+    RightFoward->setSpeed((float)(value * f));
+    LeftBackward->setSpeed(value);
+    RightBackward->setSpeed((float)(value * f));
+    LeftFoward->run(FORWARD);
+    RightFoward->run(FORWARD);
+    LeftBackward->run(FORWARD);
+    RightBackward->run(FORWARD);
   } else if (degree > 90 && degree <= 180) {
     f = (float)(180 - degree) / 90;
     if (degree <= 95) {
@@ -184,14 +208,14 @@ void Tank::Drive(int degree)
     } else  if (degree >= 175) {
       SetStatus(E_LEFT);
     }
-    DCMotor_1->setSpeed((float)(value * f));
-    DCMotor_2->setSpeed(value);
-    DCMotor_3->setSpeed((float)(value * f));
-    DCMotor_4->setSpeed(value);
-    DCMotor_1->run(FORWARD);
-    DCMotor_2->run(FORWARD);
-    DCMotor_3->run(FORWARD);
-    DCMotor_4->run(FORWARD);
+    LeftFoward->setSpeed((float)(value * f));
+    RightFoward->setSpeed(value);
+    LeftBackward->setSpeed((float)(value * f));
+    RightBackward->setSpeed(value);
+    LeftFoward->run(FORWARD);
+    RightFoward->run(FORWARD);
+    LeftBackward->run(FORWARD);
+    RightBackward->run(FORWARD);
   } else if (degree > 180 && degree <= 270) {
     f = (float)(degree - 180) / 90;
     if (degree <= 185) {
@@ -199,14 +223,14 @@ void Tank::Drive(int degree)
     } else  if (degree >= 265) {
       SetStatus(E_BACK);
     }
-    DCMotor_1->setSpeed((float)(value * f));
-    DCMotor_2->setSpeed(value);
-    DCMotor_3->setSpeed((float)(value * f));
-    DCMotor_4->setSpeed(value);
-    DCMotor_1->run(BACKWARD);
-    DCMotor_2->run(BACKWARD);
-    DCMotor_3->run(BACKWARD);
-    DCMotor_4->run(BACKWARD);
+    LeftFoward->setSpeed((float)(value * f));
+    RightFoward->setSpeed(value);
+    LeftBackward->setSpeed((float)(value * f));
+    RightBackward->setSpeed(value);
+    LeftFoward->run(BACKWARD);
+    RightFoward->run(BACKWARD);
+    LeftBackward->run(BACKWARD);
+    RightBackward->run(BACKWARD);
   } else if (degree > 270 && degree <= 360) {
     f = (float)(360 - degree) / 90;
     if (degree <= 275) {
@@ -214,14 +238,14 @@ void Tank::Drive(int degree)
     } else  if (degree >= 355) {
       SetStatus(E_RIGHT);
     }
-    DCMotor_1->setSpeed(value);
-    DCMotor_2->setSpeed((float)(value * f));
-    DCMotor_3->setSpeed(value);
-    DCMotor_4->setSpeed((float)(value * f));
-    DCMotor_1->run(BACKWARD);
-    DCMotor_2->run(BACKWARD);
-    DCMotor_3->run(BACKWARD);
-    DCMotor_4->run(BACKWARD);
+    LeftFoward->setSpeed(value);
+    RightFoward->setSpeed((float)(value * f));
+    LeftBackward->setSpeed(value);
+    RightBackward->setSpeed((float)(value * f));
+    LeftFoward->run(BACKWARD);
+    RightFoward->run(BACKWARD);
+    LeftBackward->run(BACKWARD);
+    RightBackward->run(BACKWARD);
   }
   else {
     KeepStop();
@@ -229,47 +253,39 @@ void Tank::Drive(int degree)
   }
 }
 
-void Tank::InitIrPin(void)
+void Tank::InitIr(void)
 {
-  IR = mMotorDriver->getSensor(E_IR);
+  IR = MotorDriver.getSensor(E_IR);
 }
 
-int Tank::GetIrKey(void)
+void Tank::InitBuzzer(void)
 {
-  byte irKeyCode;
-  if (irKeyCode = IR->mIrRecv->getCode()) {
-    return ((E_IR_KEYCODE)IR->mIrRecv->getIrKey(irKeyCode));
-  } return (NULL);
-}
-
-void Tank::InitBuzzerPin(void)
-{
-  Buzzer = mMotorDriver->getSensor(E_BUZZER);
+  Buzzer = MotorDriver.getSensor(E_BUZZER);
 }
 
 void Tank::sing(byte songName)
 {
-  Buzzer->Sing(songName);
+  Sensors->Sing(songName);
 }
 
 void Tank::PianoSing(ST_MUSIC_TYPE music)
 {
-  Buzzer->mBuzzer->_tone(music.note, music.beat, 2);
+  Buzzer->_tone(music.note, music.beat, 2);
 }
 
-void Tank::InitRgbPin(void)
+void Tank::InitRgb(void)
 {
-  Rgb = mMotorDriver->getSensor(E_RGB);
+  Rgb = MotorDriver.getSensor(E_RGB);
 }
 
 void Tank::SetRgbColor(E_RGB_INDEX index , long Color)
 {
-  Rgb->SetRgbColor(index, Color);
+  Sensors->SetRgbColor(index, Color);
 }
 
 void Tank::LightOff(void)
 {
-  Rgb->SetRgbColor(E_RGB_ALL, RGB_BLACK);
+  Sensors->SetRgbColor(E_RGB_ALL, RGB_BLACK);
 }
 
 void Tank::SetRgbEffect(E_RGB_INDEX index, long Color, uint8_t effect)
@@ -298,9 +314,9 @@ void Tank::SetRgbEffect(E_RGB_INDEX index, long Color, uint8_t effect)
   }
 }
 
-void Tank::InitUltrasonicPin(void)
+void Tank::InitUltrasonic(void)
 {
-  UT = mMotorDriver->getSensor(E_ULTRASONIC);
+  MotorDriver.getSensor(E_ULTRASONIC);
 }
 
 byte Tank::GetUltrasonicValue(byte direction)
@@ -308,31 +324,32 @@ byte Tank::GetUltrasonicValue(byte direction)
   byte distance;
   if (direction == 0) {
     SetServoDegree(1, 90);
-    distance = UT->GetUltrasonicDistance();
+    distance = Sensors->GetUltrasonicDistance();
   } else if (direction == 1) {
     SetServoDegree(1, 180);
-    distance = UT->GetUltrasonicDistance();
+    distance = Sensors->GetUltrasonicDistance();
     delay(400);
     SetServoDegree(1, 90);
   } else if (direction == 2) {
     SetServoDegree(1, 15);
-    distance = UT->GetUltrasonicDistance();
+    distance = Sensors->GetUltrasonicDistance();
     delay(400);
     SetServoDegree(1, 90);
   }
   return distance;
 }
 
-void Tank::InitServoPin(void)
+void Tank::InitServo(void)
 {
-  mServo1 = mMotorDriver->getServo(1);
-  mServo2 = mMotorDriver->getServo(2);
-  mServo3 = mMotorDriver->getServo(3);
-  mServo4 = mMotorDriver->getServo(4);
-  mServo5 = mMotorDriver->getServo(5);
-  mServo6 = mMotorDriver->getServo(6);
+  mServo1 = MotorDriver.getServo(1);
+  mServo2 = MotorDriver.getServo(2);
+  mServo3 = MotorDriver.getServo(3);
+  mServo4 = MotorDriver.getServo(4);
+  mServo5 = MotorDriver.getServo(5);
+  mServo6 = MotorDriver.getServo(6);
+  mServo7 = MotorDriver.getServo(7);
+  mServo8 = MotorDriver.getServo(8);
 }
-
 
 void Tank::SetServoBaseDegree(uint8_t base)
 {
@@ -366,69 +383,25 @@ void Tank::SetServoDegree(byte pin , byte Angle)
     mServo6->writeServo(Angle);
 }
 
-void Tank::InitPs2xPin(void)
+void Tank::InitPs2x(void)
 {
-  Ps2x = mMotorDriver->getSensor(E_PS2X);
-}
-
-int Tank::GetPs2xKeyValue(void)
-{
-  static int vibrate = 0;
-  Ps2x->mPs2x->read_gamepad(false, vibrate);
-  if (Ps2x->mPs2x->ButtonDataByte()) {
-    if (Ps2x->mPs2x->Button(PSB_PAD_UP)) {     //will be TRUE as long as button is pressed
-      return PSB_PAD_UP;
-    }
-    else if (Ps2x->mPs2x->Button(PSB_PAD_RIGHT)) {
-      return PSB_PAD_RIGHT;
-    }
-    else if (Ps2x->mPs2x->Button(PSB_PAD_LEFT)) {
-      return PSB_PAD_LEFT;
-    }
-    else if (Ps2x->mPs2x->Button(PSB_PAD_DOWN)) {
-      return PSB_PAD_DOWN;
-    }
-    else if (Ps2x->mPs2x->Button(PSB_CROSS)) {
-      return PSB_CROSS;
-    }
-    else if (Ps2x->mPs2x->Button(PSB_TRIANGLE)) {
-      return PSB_TRIANGLE;
-    }
-    else if (Ps2x->mPs2x->Button(PSB_CIRCLE)) {
-      return PSB_CIRCLE;
-    }
-    else if (Ps2x->mPs2x->Button(PSB_SQUARE)) {
-      return PSB_SQUARE;
-    }
-    else if (Ps2x->mPs2x->Button(PSB_L1)) {
-      return PSB_L1;
-    }
-    else if (Ps2x->mPs2x->Button(PSB_L2)) {
-      return PSB_L2;
-    }
-    else if (Ps2x->mPs2x->Button(PSB_R1)) {
-      return PSB_R1;
-    }
-    else if (Ps2x->mPs2x->Button(PSB_R2)) {
-      return PSB_R2;
-    }
-  } else
-    return NULL;
+  Ps2x = MotorDriver.getSensor(E_PS2X);
 }
 
 uint16_t Tank::GetPs2xRockerAngle(byte direction)
 {
-  static int vibrate = 0;
-  Ps2x->mPs2x->read_gamepad(false, vibrate);
-  if (direction == 1)
-    return (Ps2x->mPs2x->LeftHart());
-  else if (direction == 2)
-    return (Ps2x->mPs2x->RightHart());
+  //  Ps2x->mPs2x->read_gamepad(false, 0);
+  //  if (direction == 1)
+  //    return (Ps2x->LeftHart());
+  //  else if (direction == 2)
+  //    return (Ps2x->);
 }
 
-
-
-
+void Tank::InitNrf24L01(char *Rxaddr)
+{
+  Nrf24L01 = MotorDriver.getSensor(E_NRF24L01);
+  Nrf24L01->setRADDR(Rxaddr);
+}
 
 void Tank::SendUltrasonicData(void)
 {
@@ -441,7 +414,7 @@ void Tank::SendUltrasonicData(void)
   SendData.start_code = 0xAA;
   SendData.type = E_PANTHER_TANK;
   SendData.addr = 0x01;
-  SendData.function = E_ULTRASONIC;
+  SendData.function = E_ULTRASONIC_MODE;
   SendData.data = value.data;
   SendData.len = 10;
   SendData.end_code = 0x55;

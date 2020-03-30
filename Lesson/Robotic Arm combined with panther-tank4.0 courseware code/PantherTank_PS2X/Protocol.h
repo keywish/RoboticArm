@@ -19,7 +19,7 @@ typedef enum
     E_INFRARED_REMOTE,
     E_INFRARED_AVOIDANCE,
     E_CONTROL_MODE,  //12
-    E_BUTTON,
+    E_BUTTON = 13,
     E_LED_MAXTRIX,
     E_CMD_LINE,
     E_VERSION,
@@ -41,6 +41,8 @@ typedef enum
     E_QUADCOPTER,
     E_HELLO_BOT,
     E_MIRAGE_TANK,
+    E_4WD,
+    E_MECANUMCAR,
     E_TYPE_MAX,
 } E_TYPE;
 

@@ -8,7 +8,9 @@ FourWheelDrive mARM(mProtocol);
 void setup()
 {
   Serial.begin(9600);
+  Serial.println("PS2X control 4wd");
   mARM.init(M2, M1, M4, M3);
+  Serial.println("end");
   mARM.SetControlMode(E_PS2_REMOTE_CONTROL);
   mARM.InitServo();
   mARM.InitRgb();
@@ -17,6 +19,7 @@ void setup()
   mARM.SetServoBaseDegree(90);
   mARM.SetServoDegree(1, 90);
   mARM.InitPs2x();
+  Serial.println("init ok");
   mARM.sing(S_connection);
 }
 
@@ -96,14 +99,6 @@ void HandlePS2(void)
       }
       else if ((315 <= Ps2xRightAngle) && (Ps2xRightAngle <= 360) || (0 <= Ps2xRightAngle) && (Ps2xRightAngle < 45)) //右侧摇杆向右推，夹子后缩
       {
-     //   if ((RightServo > 95) && ( 10 < LeftServo))
-     //  {
-     //      LeftServo -= 2;
-     //   }
-     //   else if ((RightServo > 50) && ( 50 < LeftServo))
-     //    {
-     //      RightServo -= 2;
-     //    }
      if ((RightServo > 95) && ( 10 < LeftServo))
         {
          
@@ -117,6 +112,7 @@ void HandlePS2(void)
       }
       mARM.SetServoDegree(1, DownServo);
       mARM.SetServoDegree(2, LeftServo);
+      Serial.println(LeftServo);
       mARM.SetServoDegree(3, RightServo);
     }
   }
